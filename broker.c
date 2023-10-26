@@ -21,10 +21,13 @@ void cerrarPipes(int read_pipe[][2], int write_pipe[][2], int num_children);
 struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children);
 
 int main(int argc, char *argv[]) {
-
-    const char *nombreArchivo = "test1_35.txt"; // Modificar Luego
-    int N = 35; //Modficiar luego
-    int num_children = 5; // Modificar Luego
+    //Obtener argumentos de entrada
+    int N = atoi(argv[1]);
+    int num_children = atoi(argv[2]); 
+    const char *nombreArchivo = argv[3];
+    const char *nombreArchivoSalida = argv[4];
+    int num_chunk = atoi(argv[5]); 
+    int mostrar_celdas = atoi(argv[6]);
 
     int read_pipe[num_children][2]; // Pipes para leer desde los hijos
     int write_pipe[num_children][2]; // Pipes para escribir a los hijos
@@ -87,19 +90,15 @@ int main(int argc, char *argv[]) {
     cerrarPipes(read_pipe, write_pipe, num_children);
 
 
-
-    //Imprimir arreglo por pantalla
-    double *arregloEnergiaParticulasTotal = dataArrays->doubleArray;
-    for (int i = 0; i < N; i++) {
-        printf("%f  \n", arregloEnergiaParticulasTotal[i]);
+    //Obtener posicion energia maxima del arreglo
+    int posicionEnergiaMaximaActual = obtenerPosicionMaximaEnergia(dataArrays->doubleArray, N);
+    if(mostrar_celdas){
+        imprimirNormalizado(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida, dataArrays->intArray, num_children);
     }
-
-   //Imprimir numero de lineas procesadas por cada proceso hijo   
-    int *lineasProcesadasHijo = dataArrays->intArray;
-    for (int i = 0; i < num_children; i++) {
-        printf("Lineas procesadas por hijo %d: %d\n", i, lineasProcesadasHijo[i]);
+    else{
+        imprimirEnOrden(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
     }
-
+    return 0;
 }
 
 
