@@ -52,8 +52,12 @@ Mkfile.old
 dkms.conf
 
 # Ignorar todos los archivos en la carpeta "output" y sus subdirectorios
+output/
 output/*
 
 # Ignorar todos los archivos en la carpeta "testsOutput" y sus subdirectorios
+testsOutput/
 testsOutput/*
+
+
 
