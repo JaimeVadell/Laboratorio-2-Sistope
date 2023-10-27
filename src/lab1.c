@@ -78,5 +78,10 @@ int main(int argc, char *argv[]) {
         char *args[] = {"./broker", arg_N, arg_P, ruta_entrada, ruta_salida, arg_num_chunk, arg_mostrar_celdas, NULL};
         execv(args[0], args);
     }
+    else{
+        int status;
+        wait(&status); // Esperar a que el proceso hijo termine
+    }
+
     return 0;
 }
