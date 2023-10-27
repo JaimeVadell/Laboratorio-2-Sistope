@@ -66,7 +66,16 @@ int main(int argc, char *argv[]) {
         snprintf(arg_num_chunk, 10, "%d", num_chunk); // Convertir num_chunk en string
         char arg_mostrar_celdas[10];
         snprintf(arg_mostrar_celdas, 10, "%d", mostrar_celdas); // Convertir mostrar_celdas en string
-        char *args[] = {"./broker", arg_N, arg_P, archivo_entrada, archivo_salida, arg_num_chunk, arg_mostrar_celdas, NULL}; // Pasar como argumentos los strings
+        
+        // Definir rutas para archivo de entrada y salida
+        char ruta_entrada[100]; 
+        char ruta_salida[100];
+        
+        // Concatenar rutas con nombres de archivo
+        snprintf(ruta_entrada, 100, "../tests/%s", archivo_entrada); // Subir un nivel al directorio padre
+        snprintf(ruta_salida, 100, "../testsOutput/%s", archivo_salida); // Subir un nivel al directorio padre
+        
+        char *args[] = {"./broker", arg_N, arg_P, ruta_entrada, ruta_salida, arg_num_chunk, arg_mostrar_celdas, NULL};
         execv(args[0], args);
     }
     return 0;

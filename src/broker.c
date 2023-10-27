@@ -15,10 +15,11 @@ struct DataArrays {
     int *intArray;
 };
 
-void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchivo);
+void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchivo, int num_chunk);
 void finalizarComunicacionProcesosHijos(int write_pipe[][2], int num_children);
 void cerrarPipes(int read_pipe[][2], int write_pipe[][2], int num_children);
 struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children);
+void liberarMemoria(struct DataArrays *dataArrays);
 
 int main(int argc, char *argv[]) {
     //Obtener argumentos de entrada
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
     }
-
+    //Crear procesos hijos
     for (int i = 0; i < num_children; i++) {
         pid_t child_pid = fork();
 
@@ -81,7 +82,7 @@ int main(int argc, char *argv[]) {
 
     // Enviar los chunks a los hijos
     srand((time(NULL))); // Inicializar la semilla para generar números aleatorios
-    enviarChunks(write_pipe, num_children, nombreArchivo);
+    enviarChunks(write_pipe, num_children, nombreArchivo, num_chunk);
     // Finalizar la comunicación con los hijos y esperar a que terminen
     finalizarComunicacionProcesosHijos(write_pipe, num_children);
     // Recibir los resultados de los hijos
@@ -98,9 +99,22 @@ int main(int argc, char *argv[]) {
     else{
         imprimirEnOrden(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
     }
+    // Liberar la memoria
+    liberarMemoria(dataArrays);
     return 0;
 }
 
+
+
+/*Entrada: Estructura con arreglo de energia de particulas total y arreglo de lineas procesadas por cada hijo
+Salida: N/A
+Descripcion: Libera la memoria de la estructura
+*/
+void liberarMemoria(struct DataArrays *dataArrays){
+    free(dataArrays->doubleArray);
+    free(dataArrays->intArray);
+    free(dataArrays);
+}
 
 
 /*Entrada: Arreglo de pipes de lectura, arreglo de pipes de escritura, numero de hijos
@@ -144,15 +158,11 @@ struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children){
         //Sumar energia de arreglo a arregloTotal
         for (int j = 0; j < N; j++) {
             arregloEnergiaParticulasTotal[j] += arregloEnergiaParticulasHijos[j];
-            printf("Sumando %f del arreglo hija numero: %d\n", arregloEnergiaParticulasHijos[j], i);
+    
         }
 
         //Sumar lineas procesadas
         lineasProcesadasHijo[i] = lineasProcesadas;
-    }
-    //Imprimer lienas procesasHijo
-    for (int i = 0; i < num_children; i++) {
-        printf("Lineas procesadas por hijo %d: %d\n", i, lineasProcesadasHijo[i]);
     }
 
     dataArrays->doubleArray = arregloEnergiaParticulasTotal;
@@ -185,7 +195,7 @@ void finalizarComunicacionProcesosHijos(int write_pipe[][2], int num_children){
 Salida: N/A
 Descripcion: Lee el archivo y envia los chunks a los hijos
 */
-void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchivo) {
+void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchivo, int num_chunk) {
     // Leer el archivo y enviar los chunks a los hijos
     FILE *archivo = fopen(nombreArchivo, "r");
     if (archivo == NULL) {
@@ -200,14 +210,15 @@ void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchi
     int hijoRandom;
     char linea[1024]; // Tamaño adecuado para lineas
     fgets(linea, sizeof(linea), archivo); // Ignorar la primera línea
-
     // Lee el archivo línea por línea y ejecuta los calculos
     for (int i = 0; i < numLines; i++) {
         hijoRandom = generarNumeroAleatorio(0, num_children - 1); // Generar un número aleatorio entre 0 y num_children - 1
-        if (fgets(linea, sizeof(linea), archivo) != NULL) {
-            // Escribir la línea en el pipe del hijo seleccionado
-            printf("linea leida: %s enviada a hijo: %d\n", linea, hijoRandom);
-            write(write_pipe[hijoRandom][WRITE_END], linea, sizeof(linea));
+        //Entregar cierto numero de lineas a cada hijo de acuerdo a num_chunk
+        for(int chunkProcesadoHijo = 0; chunkProcesadoHijo < num_chunk; chunkProcesadoHijo++){
+            if (fgets(linea, sizeof(linea), archivo) != NULL) {
+                // Escribir la línea en el pipe del hijo seleccionado
+                write(write_pipe[hijoRandom][WRITE_END], linea, sizeof(linea));
+            }
         }
     }
     fclose(archivo);
