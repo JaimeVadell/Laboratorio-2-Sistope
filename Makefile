@@ -11,8 +11,8 @@ broker: $(SRC_DIR)/broker.c $(SRC_DIR)/funciones.c
 worker: $(SRC_DIR)/worker.c $(SRC_DIR)/funciones.c
 	$(CC) $(CFLAGS) $(OUTPUT_DIR)/worker $^ -lm
 
-lab1: $(SRC_DIR)/lab1.c
-	$(CC) $(CFLAGS) $(OUTPUT_DIR)/lab1 $(SRC_DIR)/lab1.c
+lab1: $(SRC_DIR)/lab2.c
+	$(CC) $(CFLAGS) $(OUTPUT_DIR)/lab2 $(SRC_DIR)/lab2.c
 
 clean:
 	rm -f $(OUTPUT_DIR)/*
