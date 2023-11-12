@@ -94,11 +94,11 @@ int main(int argc, char *argv[]) {
     //Obtener posicion energia maxima del arreglo
     int posicionEnergiaMaximaActual = obtenerPosicionMaximaEnergia(dataArrays->doubleArray, N);
     if(mostrar_celdas){
-        imprimirNormalizado(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida, dataArrays->intArray, num_children);
+        imprimirNormalizado(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, dataArrays->intArray, num_children);
     }
-    else{
-        imprimirEnOrden(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
-    }
+    // Generar archivo de salida
+    imprimirEnOrden(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
+    
     // Liberar la memoria
     liberarMemoria(dataArrays);
     return 0;

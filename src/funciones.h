@@ -1,6 +1,6 @@
 //Cabeceras de funciones.c
 
-void imprimirNormalizado(double * arregloEnergiaParticulas, int posicionEnergiaMaximaActual, int N, const char *nombreArchivoSalida, int * arreglolineasProcesadasHijo, int num_children);
+void imprimirNormalizado(double * arregloEnergiaParticulas, int posicionEnergiaMaximaActual, int N, int * arreglolineasProcesadasHijo, int num_children);
 void imprimirEnOrden(double * arregloEnergiaParticulas, int posicionEnergiaMaximaActual, int N, const char *nombreArchivoSalida);
 int obtenerPosicionMaximaEnergia(double *arregloEnergiaParticulas, int N);
 double* CrearArregloEnergiaParticulas(int N);

@@ -82,6 +82,7 @@ int main(int argc, char *argv[]) {
         int status;
         wait(&status); // Esperar a que el proceso hijo termine
     }
+    
 
     return 0;
 }

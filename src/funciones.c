@@ -14,22 +14,21 @@ nombre de archivo de salida
 Salida: N/A
 Descripcion: Imprime el gráfico de barras normalizado a partir de los argumentos de la funcion
  */
-void imprimirNormalizado(double * arregloEnergiaParticulas, int posicionEnergiaMaximaActual, int N, const char *nombreArchivoSalida, int * arreglolineasProcesadasHijo, int num_children){
+void imprimirNormalizado(double * arregloEnergiaParticulas, int posicionEnergiaMaximaActual, int N, int * arreglolineasProcesadasHijo, int num_children){
     
-    FILE *archivoSalida = fopen(nombreArchivoSalida, "w");
 
     // Imprime el gráfico de barras normalizado
     for (int i = 0; i < N; i++) {
         int longitudBarra = (int)((arregloEnergiaParticulas[i] / arregloEnergiaParticulas[posicionEnergiaMaximaActual]) * 50); // Normaliza a 50 caracteres de ancho
-        fprintf(archivoSalida, "%2d %10.4lf |", i, arregloEnergiaParticulas[i]);
+        printf("%2d %10.4lf |", i, arregloEnergiaParticulas[i]);
         for (int j = 0; j < longitudBarra; j++) {
-            fprintf(archivoSalida, "o");
+            printf("o");
         }
-        fprintf(archivoSalida, "\n");
+        printf("\n");
     }
     //Imprimir numero de lineas procesadas por cada proceso hijo en el documento
     for (int i = 0; i < num_children; i++) {
-        fprintf(archivoSalida, "Lineas procesadas por hijo %d: %d\n", i, arreglolineasProcesadasHijo[i]);
+        printf("Lineas procesadas por hijo %d: %d\n", i, arreglolineasProcesadasHijo[i]);
     }
 
 
@@ -45,7 +44,7 @@ void imprimirEnOrden(double * arregloEnergiaParticulas, int posicionEnergiaMaxim
     
     FILE *archivoSalida = fopen(nombreArchivoSalida, "w");
     
-    fprintf(archivoSalida, "Energia Maxima (casilla %d): ", posicionEnergiaMaximaActual);
+    fprintf(archivoSalida, "%d ", posicionEnergiaMaximaActual);
     fprintf(archivoSalida, "%f \n", arregloEnergiaParticulas[posicionEnergiaMaximaActual]);
     //Imprimir Arreglo
     for(int i = 0; i < N; i++){

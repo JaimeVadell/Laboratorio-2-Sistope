@@ -3,7 +3,7 @@ CFLAGS = -o
 SRC_DIR = src
 OUTPUT_DIR = output
 
-all: broker worker lab1
+all: broker worker lab2
 
 broker: $(SRC_DIR)/broker.c $(SRC_DIR)/funciones.c
 	$(CC) $(CFLAGS) $(OUTPUT_DIR)/broker $^ -lm
@@ -11,8 +11,8 @@ broker: $(SRC_DIR)/broker.c $(SRC_DIR)/funciones.c
 worker: $(SRC_DIR)/worker.c $(SRC_DIR)/funciones.c
 	$(CC) $(CFLAGS) $(OUTPUT_DIR)/worker $^ -lm
 
-lab1: $(SRC_DIR)/lab2.c
-	$(CC) $(CFLAGS) $(OUTPUT_DIR)/lab2 $(SRC_DIR)/lab2.c
+lab2: $(SRC_DIR)/lab2.c
+	$(CC) $(CFLAGS) $(OUTPUT_DIR)/lab2 $^
 
 clean:
 	rm -f $(OUTPUT_DIR)/*
