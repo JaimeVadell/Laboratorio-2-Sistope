@@ -6,6 +6,8 @@
 #include <time.h>
 #include "funciones.h"
 #include <string.h>
+#include <sys/ipc.h> 
+#include <sys/shm.h> 
 #define READ_END 0
 #define WRITE_END 1
 
@@ -18,7 +20,7 @@ struct DataArrays {
 void enviarChunks(int write_pipe[][2], int num_children, const char *nombreArchivo, int num_chunk);
 void finalizarComunicacionProcesosHijos(int write_pipe[][2], int num_children);
 void cerrarPipes(int read_pipe[][2], int write_pipe[][2], int num_children);
-struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children);
+int *retornoHijos(int N, int read_pipe[][2], int num_children);
 void liberarMemoria(struct DataArrays *dataArrays);
 
 int main(int argc, char *argv[]) {
@@ -32,6 +34,16 @@ int main(int argc, char *argv[]) {
 
     int read_pipe[num_children][2]; // Pipes para leer desde los hijos
     int write_pipe[num_children][2]; // Pipes para escribir a los hijos
+
+    //Crear espacio de memoria compartida con shmget
+    int key = ftok(".", 34);
+    int shmid = shmget(key, sizeof(double) * N, IPC_CREAT | 0666);
+    if (shmid == -1) {
+        perror("Error al crear el espacio de memoria compartida");
+        exit(EXIT_FAILURE);
+    }
+    double * arreglo_energia_particulas;
+    arreglo_energia_particulas = (double *)shmat(shmid, NULL, 0);
 
     // Crear pipes para la comunicación bidireccional
     for (int i = 0; i < num_children; i++) {
@@ -86,21 +98,23 @@ int main(int argc, char *argv[]) {
     // Finalizar la comunicación con los hijos y esperar a que terminen
     finalizarComunicacionProcesosHijos(write_pipe, num_children);
     // Recibir los resultados de los hijos
-    struct DataArrays *dataArrays = retornoHijos(N, read_pipe, num_children);
+    int *lineasProcesadasHijo = retornoHijos(N, read_pipe, num_children);
     // Cerrar los pipes
     cerrarPipes(read_pipe, write_pipe, num_children);
 
-
     //Obtener posicion energia maxima del arreglo
-    int posicionEnergiaMaximaActual = obtenerPosicionMaximaEnergia(dataArrays->doubleArray, N);
+    int posicionEnergiaMaximaActual = obtenerPosicionMaximaEnergia(arreglo_energia_particulas, N);
     if(mostrar_celdas){
-        imprimirNormalizado(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, dataArrays->intArray, num_children);
+        imprimirNormalizado(arreglo_energia_particulas, posicionEnergiaMaximaActual, N, lineasProcesadasHijo, num_children);
     }
     // Generar archivo de salida
-    imprimirEnOrden(dataArrays->doubleArray, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
+    imprimirEnOrden(arreglo_energia_particulas, posicionEnergiaMaximaActual, N, nombreArchivoSalida);
     
-    // Liberar la memoria
-    liberarMemoria(dataArrays);
+    // Eliminar la región de memoria compartida
+    if (shmctl(shmid, IPC_RMID, NULL) == -1) {
+        perror("Error al eliminar la memoria compartida");
+        exit(EXIT_FAILURE);
+    }
     return 0;
 }
 
@@ -133,21 +147,15 @@ void cerrarPipes(int read_pipe[][2], int write_pipe[][2], int num_children){
 Salida: Estructura con arreglo de energia de particulas total y arreglo de lineas procesadas por cada hijo
 Descripcion: Recibe los resultados de los hijos y los guarda en un arreglo de energia de particulas total y un arreglo de lineas procesadas por cada hijo
 */
-struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children){
-    struct DataArrays *dataArrays = malloc(sizeof(struct DataArrays));
+int *retornoHijos(int N, int read_pipe[][2], int num_children){
+
         // Variable de retorno de funcion
     double *arregloEnergiaParticulasTotal = CrearArregloEnergiaParticulas(N);
     int *lineasProcesadasHijo = (int *)malloc(num_children * sizeof(int));
     // Leer los resultados de los hijos
     for (int i = 0; i < num_children; i++) {
-        double arregloEnergiaParticulasHijos[N];
-        int lineasProcesadas;
 
-        // Leer el arreglo de energía de partículas
-        if (read(read_pipe[i][READ_END], arregloEnergiaParticulasHijos, sizeof(double) * N) == -1) {
-            perror("Error al leer el arreglo de energía de partículas");
-            exit(EXIT_FAILURE);
-        }
+        int lineasProcesadas;
 
         // Leer la cantidad de líneas procesadas
         if (read(read_pipe[i][READ_END], &lineasProcesadas, sizeof(int)) == -1) {
@@ -155,20 +163,12 @@ struct DataArrays *retornoHijos(int N, int read_pipe[][2], int num_children){
             exit(EXIT_FAILURE);
         }
 
-        //Sumar energia de arreglo a arregloTotal
-        for (int j = 0; j < N; j++) {
-            arregloEnergiaParticulasTotal[j] += arregloEnergiaParticulasHijos[j];
-    
-        }
 
         //Sumar lineas procesadas
         lineasProcesadasHijo[i] = lineasProcesadas;
     }
 
-    dataArrays->doubleArray = arregloEnergiaParticulasTotal;
-    dataArrays->intArray = lineasProcesadasHijo;
-    
-    return dataArrays;
+    return lineasProcesadasHijo;
 
 }
 /*Entrada: Arreglo de pipes de escritura, numero de hijos

@@ -27,6 +27,9 @@ void imprimirNormalizado(double * arregloEnergiaParticulas, int posicionEnergiaM
         printf("\n");
     }
     //Imprimir numero de lineas procesadas por cada proceso hijo en el documento
+    //Salto de linea para separar
+
+    printf("---------------------------------------------\n \n");
     for (int i = 0; i < num_children; i++) {
         printf("Lineas procesadas por hijo %d: %d\n", i, arreglolineasProcesadasHijo[i]);
     }
